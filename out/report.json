@@ -1,0 +1,96 @@
+{
+  "summary": {
+    "cases": 8,
+    "risks": 6,
+    "safe": 2,
+    "risk_type_distribution": {
+      "host_mismatch": 1,
+      "path_normalization_split": 2,
+      "trusted_proxy_header_in_key": 1,
+      "missing_vary": 1,
+      "public_with_set_cookie": 1
+    }
+  },
+  "results": [
+    {
+      "case_id": "normal-with-vary",
+      "verdict": "safe",
+      "risk_types": [],
+      "evidence": [],
+      "cache_key": "api.example.com|/api/v1/profile||"
+    },
+    {
+      "case_id": "host-target-mismatch",
+      "verdict": "risk",
+      "risk_types": [
+        "host_mismatch"
+      ],
+      "evidence": [
+        "Host header 'victim.example.com' disagrees with absolute-form request target host 'cdn-attacker.example.net' (target 'http://cdn-attacker.example.net/account/settings'); cache key uses the Host header value"
+      ],
+      "cache_key": "victim.example.com|/account/settings||"
+    },
+    {
+      "case_id": "dot-segment-path",
+      "verdict": "risk",
+      "risk_types": [
+        "path_normalization_split"
+      ],
+      "evidence": [
+        "path '/a/b/../c' normalizes to '/a/c'; equivalent URLs produce different cache keys: raw key 'static.example.com|/a/b/../c||' vs normalized key 'static.example.com|/a/c||'"
+      ],
+      "cache_key": "static.example.com|/a/c||"
+    },
+    {
+      "case_id": "forwarded-host-in-key",
+      "verdict": "risk",
+      "risk_types": [
+        "trusted_proxy_header_in_key"
+      ],
+      "evidence": [
+        "cache key adopts trusted proxy header(s) 'X-Forwarded-Host'; clients can mint arbitrary cache keys"
+      ],
+      "cache_key": "app.example.com|/dashboard||x-forwarded-host"
+    },
+    {
+      "case_id": "missing-vary-origin",
+      "verdict": "risk",
+      "risk_types": [
+        "missing_vary"
+      ],
+      "evidence": [
+        "response content varies with request header 'Origin' but the Vary response header does not cover it"
+      ],
+      "cache_key": "api.example.com|/api/v1/data||"
+    },
+    {
+      "case_id": "public-with-set-cookie",
+      "verdict": "risk",
+      "risk_types": [
+        "public_with_set_cookie"
+      ],
+      "evidence": [
+        "conflicting response directives: 'Cache-Control: public' authorizes shared caching while 'Set-Cookie' marks the response user-specific"
+      ],
+      "cache_key": "shop.example.com|/account/home||"
+    },
+    {
+      "case_id": "query-string-ignored",
+      "verdict": "safe",
+      "risk_types": [],
+      "evidence": [],
+      "cache_key": "cdn.example.com|/assets/logo.png||"
+    },
+    {
+      "case_id": "trailing-slash-split",
+      "verdict": "risk",
+      "risk_types": [
+        "path_normalization_split"
+      ],
+      "evidence": [
+        "path '/api/v1/items/' normalizes to '/api/v1/items'; equivalent URLs produce different cache keys: raw key 'api.example.com|/api/v1/items/||' vs normalized key 'api.example.com|/api/v1/items||'"
+      ],
+      "cache_key": "api.example.com|/api/v1/items||"
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "config": {
+    "query_mode": "all",
+    "query_params": [],
+    "key_headers": []
+  },
+  "cases": [
+    {
+      "case_id": "normal-with-vary",
+      "request": {
+        "method": "GET",
+        "target": "/api/v1/profile",
+        "headers": {
+          "Host": "api.example.com",
+          "Accept-Encoding": "gzip, br"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Cache-Control": "public, max-age=60",
+          "Vary": "Accept-Encoding"
+        },
+        "varies_on": ["Accept-Encoding"]
+      }
+    },
+    {
+      "case_id": "host-target-mismatch",
+      "request": {
+        "method": "GET",
+        "target": "http://cdn-attacker.example.net/account/settings",
+        "headers": {
+          "Host": "victim.example.com"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Cache-Control": "public, max-age=300"
+        }
+      }
+    },
+    {
+      "case_id": "dot-segment-path",
+      "request": {
+        "method": "GET",
+        "target": "/a/b/../c",
+        "headers": {
+          "Host": "static.example.com"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Cache-Control": "public, max-age=3600"
+        }
+      }
+    },
+    {
+      "case_id": "forwarded-host-in-key",
+      "request": {
+        "method": "GET",
+        "target": "/dashboard",
+        "headers": {
+          "Host": "app.example.com",
+          "X-Forwarded-Host": "evil.example.org"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Cache-Control": "public, max-age=120"
+        }
+      },
+      "config": {
+        "key_headers": ["X-Forwarded-Host"]
+      }
+    },
+    {
+      "case_id": "missing-vary-origin",
+      "request": {
+        "method": "GET",
+        "target": "/api/v1/data",
+        "headers": {
+          "Host": "api.example.com",
+          "Origin": "https://attacker.example.org"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Cache-Control": "public, max-age=300",
+          "Access-Control-Allow-Origin": "https://attacker.example.org"
+        },
+        "varies_on": ["Origin"]
+      }
+    },
+    {
+      "case_id": "public-with-set-cookie",
+      "request": {
+        "method": "GET",
+        "target": "/account/home",
+        "headers": {
+          "Host": "shop.example.com",
+          "Cookie": "sessionid=abc123"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Cache-Control": "public, max-age=600",
+          "Set-Cookie": "sessionid=abc123; Path=/; HttpOnly"
+        }
+      }
+    },
+    {
+      "case_id": "query-string-ignored",
+      "request": {
+        "method": "GET",
+        "target": "/assets/logo.png?utm_source=newsletter&utm_campaign=x",
+        "headers": {
+          "Host": "cdn.example.com"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Cache-Control": "public, max-age=86400"
+        }
+      },
+      "config": {
+        "query_mode": "ignore"
+      }
+    },
+    {
+      "case_id": "trailing-slash-split",
+      "request": {
+        "method": "GET",
+        "target": "/api/v1/items/",
+        "headers": {
+          "Host": "api.example.com"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Cache-Control": "public, max-age=300"
+        }
+      }
+    }
+  ]
+}
